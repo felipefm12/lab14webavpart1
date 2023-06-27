@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Carga de archivos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    form {
+      margin-bottom: 20px;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+    }
+
+    .file-input-label {
+      background-color: #2196f3;
+      color: #fff;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+
+    .file-name-label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    #file-upload {
+      display: none;
+    }
+
+    #file-upload-label {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #2196f3;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    #file-upload-label:hover {
+      background-color: #0c84db;
+    }
+
+    #file-upload-label:active {
+      background-color: #0a6abf;
+    }
+
+    #file-info {
+      margin-top: 20px;
+      border-top: 1px solid #ccc;
+      padding-top: 20px;
+    }
+
+    .file-details {
+      margin-bottom: 20px;
+    }
+
+    .file-details p {
+      margin: 5px 0;
+    }
+
+    .error-message {
+      color: red;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Carga de archivos</h1>
+  <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
+    <div class="file-input-wrapper">
+      <label for="file-upload" id="file-upload-label">Seleccionar archivos</label>
+      <input type="file" name="files" id="file-upload" multiple />
+      <span class="file-name-label">Ningún archivo seleccionado</span>
+    </div>
+    <button type="submit">Cargar</button>
+  </form>
+
+  <div id="file-info"></div>
+
+  <script>
+    // Script para mostrar los detalles de los archivos cargados
+    const form = document.querySelector('#upload-form');
+    const fileInfoDiv = document.querySelector('#file-info');
+    const fileInput = document.querySelector('#file-upload');
+    const fileNameLabel = document.querySelector('.file-name-label');
+
+    fileInput.addEventListener('change', () => {
+      const fileCount = fileInput.files.length;
+      fileNameLabel.textContent = fileCount > 0 ? `${fileCount} archivos seleccionados` : 'Ningún archivo seleccionado';
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(form);
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const fileInfos = await response.json();
+        fileInfoDiv.innerHTML = '';
+
+        fileInfos.forEach((fileInfo, index) => {
+          const fileDetails = document.createElement('div');
+          fileDetails.classList.add('file-details');
+          fileDetails.innerHTML = `
+            <p><strong>Archivo ${index + 1}:</strong></p>
+            <p>Nombre: ${fileInfo.filename}</p>
+            <p>Nombre original: ${fileInfo.originalname}</p>
+            <p>Tamaño: ${fileInfo.size} bytes</p>
+            <p>Tipo MIME: ${fileInfo.mimetype}</p>
+          `;
+          fileInfoDiv.appendChild(fileDetails);
+        });
+      } else {
+        fileInfoDiv.innerHTML = '<div class="error-message">Error al cargar los archivos.</div>';
+      }
+    });
+  </script>
+</body>
+</html>
